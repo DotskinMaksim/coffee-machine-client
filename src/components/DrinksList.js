@@ -16,6 +16,7 @@ const DrinksList = () => {
   const [drinks, setDrinks] = useState([]);
 
   useEffect(() => {
+      document.title = "Admin Panel - Drinks List";
     axios
       .get("https://localhost:7198/api/Drinks")
       .then((response) => setDrinks(response.data))

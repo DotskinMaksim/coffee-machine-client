@@ -14,6 +14,7 @@ const EditDrink = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const navigate = useNavigate();
+  document.title = "Admin Panel - Edit Drink";
 
   useEffect(() => {
     axios

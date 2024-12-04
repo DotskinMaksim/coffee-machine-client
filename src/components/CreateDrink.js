@@ -16,6 +16,7 @@ const CreateDrink = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const navigate = useNavigate();
+  document.title = "Admin Panel - Create Drink";
 
   const handleSubmit = (e) => {
     e.preventDefault();
