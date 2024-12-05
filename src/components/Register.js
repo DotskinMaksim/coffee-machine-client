@@ -15,6 +15,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState(""); // Kinnitamise parooli väärtus
   const [error, setError] = useState(null); // Viga registreerimise ajal
   const [success, setSuccess] = useState(false); // Kas registreerimine õnnestus
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Registreerimisvormi saatmise käsitleja
   const handleSubmit = async (e) => {
@@ -24,7 +25,7 @@ const Register = () => {
 
     try {
       // Saame API-le POST päringu kasutaja andmetega
-      const response = await axios.post("https://localhost:7198/api/auth/register", {
+      const response = await axios.post(`${API_URL}/auth/register`, {
         email,
         password,
         confirmPassword,

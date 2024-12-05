@@ -21,6 +21,7 @@ const Menu = () => {
     localStorage.removeItem("bonusBalance");
 
     // Suuname kasutaja põhilehele pärast väljumist
+    window.location.reload();
     navigate("/");
   };
 
