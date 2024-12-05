@@ -37,7 +37,9 @@ const LoginLogs = () => {
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>Login Logs</Typography>
+       <Typography variant="h4" sx={{ mb: 4, mt: 2 }}>
+        Login Logs
+      </Typography>
       {error && <Typography color="error">{error}</Typography>}
       <TableContainer component={Paper}>
         <Table>

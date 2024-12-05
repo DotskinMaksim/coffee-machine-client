@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   TextField,
@@ -17,6 +17,13 @@ const Login = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate(); // Kasutame navigeerimise võimalust pärast edukat sisselogimist
   const API_URL = process.env.API_URL;
+
+   useEffect(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        navigate("/");
+      }
+    }, [navigate]);
 
   // Käideldakse vormi esitamist
   const handleSubmit = async (e) => {

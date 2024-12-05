@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import styled from 'styled-components';
+
 import {
   Box,
   Button,
@@ -13,13 +16,57 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
+const Modal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
+const ModalContent = styled.div`
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+`;
+
+const ConfirmButton = styled(Button)`
+  background-color: #4caf50;
+
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
+const CancelButton = styled(Button)`
+  background-color: #f44336;
+    color: white;
+  &:hover {
+    background-color: #e53935;
+  }
+`;
 const DrinksList = () => {
   // Loome olekud jookide, töötlemisolekute, valitud joogi ID ja admin õiguste hoidmiseks
   const [drinks, setDrinks] = useState([]); // Hoidke kõik joogid olekus
   const [isProcessing, setIsProcessing] = useState(false); // Kas jooki töödeldakse
   const [selectedDrinkId, setSelectedDrinkId] = useState(null); // Valitud joogi ID
   const [isAdmin, setIsAdmin] = useState(false); // Kas kasutajal on administraatori õigused
+  const [paymentStatus, setPaymentStatus] = useState('');
+  const [paymentWindow, setPaymentWindow] = useState(null);  // Manage window state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [intervalId, setIntervalId] = useState(null);  // Manage interval state
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+  const [processingOrderId, setProcessingOrderId] = useState(null);
+
+    const navigate = useNavigate();
+
 
   useEffect(() => {
     document.title = "Drinks List"; // Määrame lehe tiitli
@@ -43,16 +90,140 @@ const DrinksList = () => {
   }, []);
 
   // Funktsioon joogi ettevalmistamiseks (näiteks kui kasutaja ei ole administraator)
-  const handlePrepareDrink = (id) => {
-    setIsProcessing(true); // Määrame töötlemisoleku True
-    setSelectedDrinkId(id); // Määrame valitud joogi ID
+  const handlePrepareDrink = async(id)  => {
+     let paymentWindowInstance = null;
+     let intervalInstance = null;
+     let userId = localStorage.getItem("userId");
+      if (!userId) {
+       const response = await fetch(`https://localhost:7198/api/users/guest-id`);
+       const data = await response.json();
+        userId = data.Id;
+      }
+      const orderData = {
+      userId: userId,
+      sugarLevel: 2,
+      quantity: 1,
+      cupSizeId: 1,
+      drinkId: id,
+     };
+      let isLoggedIn = false;
+      const token = localStorage.getItem("token");
+      if (token) {
+        isLoggedIn = true;
+      }
 
-    // Kui töötlemine on lõpetatud (5 sekundi pärast), näitame alerti
-    setTimeout(() => {
-      setIsProcessing(false); // Määrame töötlemisoleku False
-      setSelectedDrinkId(null); // Tühjendame valitud joogi ID
-      alert("Your drink is ready. You can take it!"); // Näitame sõnumi
-    }, 5000);
+     const response = await fetch(`https://localhost:7198/api/orders?isLoggedIn=${isLoggedIn}` ,{
+         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      });
+      if (!response.ok) throw new Error('Order initiation failed');
+
+     const data = await response.json();
+      const link = data.paymentLink;
+      const orderId = await data.orderId;
+      setProcessingOrderId(orderId);
+
+      paymentWindowInstance = window.open(link, '_blank');
+      setPaymentWindow(paymentWindowInstance); // Save the payment window to state
+      setIsModalOpen(true);
+      setIsPaymentProcessing(true);
+
+      intervalInstance = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(link);
+          const status = await statusResponse.json();
+
+          if (status.state === 'completed') {
+               const confirmData = {
+               success: true,
+               paymentStatus: "Completed",
+             };
+            const confirmResponse =  await fetch(`https://localhost:7198/api/orders/confirm/${orderId}` , {
+                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(confirmData),
+            });
+            if (confirmResponse.ok){
+               clearInterval(intervalInstance);
+              paymentWindowInstance?.close();
+              setIsPaymentProcessing(false);
+              setPaymentStatus('success');
+
+               setTimeout(() => {
+                  setIsModalOpen(false);
+                  setPaymentStatus('');
+                }, 1000);
+
+              setIntervalId(intervalInstance); // Save the interval to state
+
+              setIsProcessing(true); // Määrame töötlemisoleku True
+              setSelectedDrinkId(id); // Määrame valitud joogi ID
+
+              // Kui töötlemine on lõpetatud (5 sekundi pärast), näitame alerti
+              setTimeout(() => {
+                setIsProcessing(false); // Määrame töötlemisoleku False
+                setSelectedDrinkId(null); // Tühjendame valitud joogi ID
+                alert("Your drink is ready. You can take it!"); // Näitame sõnumi
+              }, 5000);
+            }
+            else{
+              console.log("Error confirming order.")
+               clearInterval(intervalInstance);
+              paymentWindowInstance?.close();
+              setIsPaymentProcessing(false);
+              setPaymentStatus('failed');
+            }
+            setProcessingOrderId(null);
+
+
+
+          }
+          else if (status.state === 'failed') {
+              setProcessingOrderId(null);
+              const confirmData = {
+               success: false,
+               paymentStatus: "Canceled",
+             };
+            await fetch(`https://localhost:7198/api/orders/confirm/${orderId}` , {
+                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(confirmData),
+            });
+            clearInterval(intervalInstance);
+            paymentWindowInstance?.close();
+            setIsPaymentProcessing(false);
+            setPaymentStatus('failed');
+            setTimeout(() => {
+              setIsModalOpen(false);
+              setPaymentStatus('');
+            }, 2000);
+          }
+        } catch (error) {
+          console.error('Error checking payment status:', error);
+        }
+      }, 3000);
+
+
+  };
+   const handleCancelPayment = async() => {
+       const confirmData = {
+               success: false,
+               paymentStatus: "Canceled",
+             };
+            await fetch(`https://localhost:7198/api/orders/confirm/${processingOrderId}` , {
+                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(confirmData),
+            });
+    setProcessingOrderId(null);
+
+    if (paymentWindow) paymentWindow.close();
+    if (intervalId) clearInterval(intervalId);
+    setIsPaymentProcessing(false);
+    setPaymentStatus('failed');
+    setIsModalOpen(false);
+
   };
 
   // Funktsioon joogi kustutamiseks
@@ -148,6 +319,24 @@ const DrinksList = () => {
           </Grid>
         ))}
       </Grid>
+      {isModalOpen && (
+        <Modal>
+          <ModalContent>
+            {isPaymentProcessing ? (
+              <>
+                <p>Processing payment...</p>
+                <CancelButton onClick={handleCancelPayment}>Cancel payment</CancelButton>
+              </>
+            ) : paymentStatus === 'success' ? (
+              <>
+            <p>Payment successful!</p>
+              </>
+            ) : paymentStatus === 'failed' && (
+              <p>Payment canceled.</p>
+            )}
+          </ModalContent>
+        </Modal>
+      )}
     </Container>
   );
 };

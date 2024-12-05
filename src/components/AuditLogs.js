@@ -32,7 +32,9 @@ const AuditLogs = () => {
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>Audit Logs</Typography>
+       <Typography variant="h4" sx={{ mb: 4, mt: 2 }}>
+        Audit Log
+      </Typography>
       {error && <Typography color="error">{error}</Typography>}
       <TableContainer component={Paper}>
         <Table>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
   Container,
   TextField,
@@ -8,6 +8,7 @@ import {
   Alert,
 } from "@mui/material";
 import axios from "axios";
+import {useNavigate} from "react-router-dom";
 
 const Register = () => {
   const [email, setEmail] = useState(""); // E-posti väärtus
@@ -15,7 +16,15 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState(""); // Kinnitamise parooli väärtus
   const [error, setError] = useState(null); // Viga registreerimise ajal
   const [success, setSuccess] = useState(false); // Kas registreerimine õnnestus
+  const navigate = useNavigate(); // Kasutame navigeerimise võimalust pärast edukat sisselogimist
   const API_URL = process.env.API_URL;
+
+  useEffect(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        navigate("/");
+      }
+    }, [navigate]);
 
   // Registreerimisvormi saatmise käsitleja
   const handleSubmit = async (e) => {
