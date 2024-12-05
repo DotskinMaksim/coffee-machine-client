@@ -33,6 +33,7 @@ const DrinksList = () => {
       .get("https://localhost:7198/api/Drinks", {
         params: {
           isLogged: isLogged,
+          isAdmin: adminStatus
         },
       })
       .then((response) => setDrinks(response.data))

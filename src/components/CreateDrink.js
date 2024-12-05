@@ -14,6 +14,7 @@ import {
 const CreateDrink = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [price, setPrice] = useState(""); // Добавляем состояние для цены
   const [image, setImage] = useState(null);
   const navigate = useNavigate();
   document.title = "Admin Panel - Create Drink";
@@ -23,6 +24,7 @@ const CreateDrink = () => {
     const formData = new FormData();
     formData.append("Name", name);
     formData.append("Description", description);
+    formData.append("Price", price);
     formData.append("Image", image);
 
     axios
@@ -30,8 +32,7 @@ const CreateDrink = () => {
       .then(() => navigate("/"))
       .catch((error) => console.error("Error creating drink:", error));
   };
-
-  return (
+   return (
     <Container>
       <Typography variant="h4" sx={{ mb: 4, mt: 2 }}>
         Create New Drink
@@ -53,6 +54,14 @@ const CreateDrink = () => {
           rows={4}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+        />
+        <TextField
+          label="Price" // Поле для цены
+          type="number"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          required
+          inputProps={{ min: 0, step: 0.01 }} // Ограничения: минимум 0, шаг 0.01
         />
         <Button
           variant="outlined"
@@ -92,5 +101,4 @@ const CreateDrink = () => {
     </Container>
   );
 };
-
 export default CreateDrink;

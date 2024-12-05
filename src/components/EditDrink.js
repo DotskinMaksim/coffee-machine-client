@@ -13,6 +13,7 @@ const EditDrink = () => {
   const { id } = useParams();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [price, setPrice] = useState(""); // Добавляем состояние для цены
   const navigate = useNavigate();
   document.title = "Admin Panel - Edit Drink";
 
@@ -22,6 +23,7 @@ const EditDrink = () => {
       .then((response) => {
         setName(response.data.name);
         setDescription(response.data.description);
+        setPrice(response.data.price); // Получаем цену из API
       })
       .catch((error) => console.error("Error fetching drink:", error));
   }, [id]);
@@ -32,12 +34,13 @@ const EditDrink = () => {
       .put(`https://localhost:7198/api/drinks/${id}`, {
         Name: name,
         Description: description,
+        Price: parseFloat(price), // Передаем цену на сервер
       })
       .then(() => navigate("/"))
       .catch((error) => console.error("Error updating drink:", error));
   };
 
-  return (
+ return (
     <Container>
       <Typography variant="h4" sx={{ mb: 4, mt: 2 }}>
         Edit Drink
@@ -59,6 +62,14 @@ const EditDrink = () => {
           rows={4}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+        />
+        <TextField
+          label="Price" // Поле для цены
+          type="number"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          required
+          inputProps={{ min: 0, step: 0.01 }} // Ограничения: минимум 0, шаг 0.01
         />
         <Button variant="contained" type="submit">
           Save
