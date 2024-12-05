@@ -7,6 +7,8 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Footer from "./components/Footer";
 import Menu from "./components/Menu";
+import LoginLogs from "./components/LoginLogs";
+import AuditLogs from "./components/AuditLogs";
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
           <Route path="/edit/:id" element={<EditDrink />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/login-logs" element={<LoginLogs />} />
+          <Route path="/audit-logs" element={<AuditLogs />} />
         </Routes>
         <Footer />
       </div>
