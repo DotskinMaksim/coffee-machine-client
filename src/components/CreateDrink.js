@@ -18,7 +18,7 @@ const CreateDrink = () => {
   const [price, setPrice] = useState(""); // Joogi hind
   const [image, setImage] = useState(null); // Joogi pilt
   const navigate = useNavigate(); // Navigeerimise funktsioon lehe muutmiseks
-  const API_URL = process.env.REACT_APP_API_URL;
+  const API_URL = process.env.API_URL;
   document.title = "Admin Panel - Create Drink"; // Lehe tiitli muutmine
 
   // Vormist saadetud andmete töötlemise funktsioon
@@ -32,7 +32,7 @@ const CreateDrink = () => {
 
     // Saadame POST-päringu serverile joogi loomiseks
     axios
-      .post(`${API_URL}/drinks`, formData) // API aadress
+      .post(`https://localhost:7198/api/drinks`, formData) // API aadress
       .then(() => navigate("/")) // Kui õnnestub, suuname kasutaja tagasi avalehele
       .catch((error) => console.error("Error creating drink:", error)); // Kui tekib viga, logime selle
   };

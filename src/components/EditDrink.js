@@ -17,14 +17,14 @@ const EditDrink = () => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(""); // Hind lisatakse olekusse
   const navigate = useNavigate();
-    const API_URL = process.env.REACT_APP_API_URL;
+  const API_URL = process.env.API_URL;
 
   document.title = "Admin Panel - Edit Drink"; // Lehe pealkirja seadistamine
 
   // Kasutame useEffecti, et saada andmed API-lt, kui komponent laadib
   useEffect(() => {
     axios
-      .get(`${API_URL}/drinks/${id}`) // Päring andmete saamiseks vastavalt ID-le
+      .get(`https://localhost:7198/api/drinks/${id}`) // Päring andmete saamiseks vastavalt ID-le
       .then((response) => {
         setName(response.data.name); // Määrame nime
         setDescription(response.data.description); // Määrame kirjelduse
@@ -37,7 +37,7 @@ const EditDrink = () => {
   const handleSubmit = (e) => {
     e.preventDefault(); // Vormil saadud andmete saatmise vältimiseks
     axios
-      .put(`${API_URL}/drinks/${id}`, {
+      .put(`https://localhost:7198/api/drinks/${id}`, {
         Name: name, // Saatke uus nimi
         Description: description, // Saatke uus kirjeldus
         Price: parseFloat(price), // Saatke hind, tagame, et see on number

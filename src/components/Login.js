@@ -16,7 +16,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate(); // Kasutame navigeerimise võimalust pärast edukat sisselogimist
-  const API_URL = process.env.REACT_APP_API_URL;
+  const API_URL = process.env.API_URL;
 
   // Käideldakse vormi esitamist
   const handleSubmit = async (e) => {
@@ -25,7 +25,7 @@ const Login = () => {
 
     try {
       // Teeme POST-päringu sisselogimiseks
-      const response = await axios.post(`${API_URL}/auth/login`, {
+      const response = await axios.post(`https://localhost:7198/api/auth/login`, {
         email,
         password,
       });

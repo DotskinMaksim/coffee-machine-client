@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { useNavigate } from "react-router-dom"; // Импортируем useNavigate
 
 const LoginLogs = () => {
   const [loginLogs, setLoginLogs] = useState([]);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Используем navigate для перенаправления
 
   useEffect(() => {
     const fetchLoginLogs = async () => {
+       const userRole = localStorage.getItem("isAdmin"); // Допустим, мы сохраняем информацию о роли пользователя в localStorage
+        if (userRole !== "true") {
+          navigate("/");
+        }
       try {
-        const response = await axios.get(`${process.env.API_URL}/Logs?userId=2&logs=login&token=${localStorage.getItem("token")}`, {
+        // Получаем информацию о пользователе
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`https://localhost:7198/api/Logs?userId=2&logs=login&token=${token}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
+            Authorization: `Bearer ${token}`
           }
         });
+
+
+
         setLoginLogs(response.data);
       } catch (err) {
         setError("Failed to fetch login logs.");
@@ -22,7 +33,7 @@ const LoginLogs = () => {
     };
 
     fetchLoginLogs();
-  }, []);
+  }, [navigate]); // Добавляем navigate в зависимость useEffect
 
   return (
     <Container>
@@ -32,20 +43,20 @@ const LoginLogs = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>User</TableCell>
-              <TableCell>Login Time</TableCell>
-              <TableCell>IP Address</TableCell>
-              <TableCell>Success</TableCell>
-              <TableCell>Login Method</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: '16px', backgroundColor: '#f0f0f0' }}>User</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: '16px', backgroundColor: '#f0f0f0' }}>Login Time</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: '16px', backgroundColor: '#f0f0f0' }}>IP Address</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: '16px', backgroundColor: '#f0f0f0' }}>Result</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: '16px', backgroundColor: '#f0f0f0' }}>Login Method</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loginLogs.map((log) => (
               <TableRow key={log.id}>
-                <TableCell>{log.user.email}</TableCell>
+                <TableCell>{log.userEmail}</TableCell>
                 <TableCell>{new Date(log.loginTime).toLocaleString()}</TableCell>
                 <TableCell>{log.ipAddress}</TableCell>
-                <TableCell>{log.isSuccess ? "Yes" : "No"}</TableCell>
+                <TableCell>{log.result}</TableCell>
                 <TableCell>{log.loginMethod}</TableCell>
               </TableRow>
             ))}

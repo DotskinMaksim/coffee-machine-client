@@ -20,7 +20,6 @@ const DrinksList = () => {
   const [isProcessing, setIsProcessing] = useState(false); // Kas jooki töödeldakse
   const [selectedDrinkId, setSelectedDrinkId] = useState(null); // Valitud joogi ID
   const [isAdmin, setIsAdmin] = useState(false); // Kas kasutajal on administraatori õigused
-  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     document.title = "Drinks List"; // Määrame lehe tiitli
@@ -33,7 +32,7 @@ const DrinksList = () => {
 
     // Teeme GET-päringu, et saada kõik joogid vastavalt sisselogimise ja administraatori staatusele
     axios
-      .get(`${API_URL}/Drinks`, {
+      .get(`https://localhost:7198/api/Drinks`, {
         params: {
           isLogged: isLogged,
           isAdmin: adminStatus
@@ -60,7 +59,7 @@ const DrinksList = () => {
   const deleteDrink = (id) => {
     if (window.confirm("Are you sure you want to delete this drink?")) { // Küsimus kustutamise kinnitamiseks
       axios
-        .delete(`${API_URL}/drinks/${id}`) // Teeme DELETE-päringu
+        .delete(`https://localhost:7198/api/drinks/${id}`) // Teeme DELETE-päringu
         .then(() => setDrinks(drinks.filter((drink) => drink.id !== id))) // Kui päring õnnestub, eemalda jook loendist
         .catch((error) => console.error("Error deleting drink:", error)); // Kui päring ebaõnnestub, logime vea
     }
