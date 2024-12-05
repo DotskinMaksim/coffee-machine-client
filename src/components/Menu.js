@@ -5,34 +5,35 @@ import { useNavigate } from "react-router-dom";
 const Menu = () => {
   const navigate = useNavigate();
 
-  // Проверяем, есть ли токен в localStorage
+  // Kontrollime, kas on olemas token localStorage-s
   const isLogged = !!localStorage.getItem("token");
 
-  // Извлекаем данные из localStorage
+  // Loeme vajalikud andmed localStorage-st
   const bonusBalance = localStorage.getItem("bonusBalance");
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
+  // Sisselogimisest väljumise käsitleja
   const handleLogout = () => {
-    // Удаляем токен и другие данные пользователя
+    // Eemaldame kõik kasutaja andmed localStorage-st
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("isAdmin");
     localStorage.removeItem("bonusBalance");
 
-    // Перенаправляем на главную страницу
+    // Suuname kasutaja põhilehele pärast väljumist
     navigate("/");
   };
 
   return (
     <AppBar position="static">
       <Toolbar>
-        {/* Левый блок - текст "Coffee Machine" */}
+        {/* Vasakpoolne blokk - tekst "Coffee Machine" */}
         <Typography variant="h6" sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
           <Button color="inherit" onClick={() => navigate("/")}>
             Coffee Machine
           </Button>
 
-          {/* Отображение баланса справа от текста, если пользователь обычный */}
+          {/* Kuvame kasutaja boonussaldo, kui tegemist ei ole administraatoriga */}
           {!isAdmin && bonusBalance && (
             <Typography variant="subtitle1" sx={{ ml: 2 }}>
               Bonus Balance: €{bonusBalance}
@@ -40,7 +41,7 @@ const Menu = () => {
           )}
         </Typography>
 
-        {/* Правый блок - кнопки */}
+        {/* Parempoolne blokk - sisselogimise/väljalogimise nupud */}
         <Box>
           {isLogged ? (
             <>

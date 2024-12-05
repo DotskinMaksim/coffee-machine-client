@@ -12,57 +12,66 @@ import {
 } from "@mui/material";
 
 const CreateDrink = () => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(""); // Добавляем состояние для цены
-  const [image, setImage] = useState(null);
-  const navigate = useNavigate();
-  document.title = "Admin Panel - Create Drink";
+  // Joogi nime, kirjelduse, hinna ja pildi jaoks loodud olekud
+  const [name, setName] = useState(""); // Joogi nimi
+  const [description, setDescription] = useState(""); // Joogi kirjeldus
+  const [price, setPrice] = useState(""); // Joogi hind
+  const [image, setImage] = useState(null); // Joogi pilt
+  const navigate = useNavigate(); // Navigeerimise funktsioon lehe muutmiseks
+  document.title = "Admin Panel - Create Drink"; // Lehe tiitli muutmine
 
+  // Vormist saadetud andmete töötlemise funktsioon
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("Name", name);
-    formData.append("Description", description);
-    formData.append("Price", price);
-    formData.append("Image", image);
+    e.preventDefault(); // Väldime lehe taaskäivitumist
+    const formData = new FormData(); // Loome uue FormData objekti, et saata vormiandmeid
+    formData.append("Name", name); // Lisame joogi nime
+    formData.append("Description", description); // Lisame joogi kirjelduse
+    formData.append("Price", price); // Lisame joogi hinna
+    formData.append("Image", image); // Lisame joogi pildi
 
+    // Saadame POST-päringu serverile joogi loomiseks
     axios
-      .post("https://localhost:7198/api/drinks", formData)
-      .then(() => navigate("/"))
-      .catch((error) => console.error("Error creating drink:", error));
+      .post("https://localhost:7198/api/drinks", formData) // API aadress
+      .then(() => navigate("/")) // Kui õnnestub, suuname kasutaja tagasi avalehele
+      .catch((error) => console.error("Error creating drink:", error)); // Kui tekib viga, logime selle
   };
-   return (
+
+  return (
     <Container>
       <Typography variant="h4" sx={{ mb: 4, mt: 2 }}>
         Create New Drink
       </Typography>
+      {/* Vorm joogi loomiseks */}
       <Box
         component="form"
         onSubmit={handleSubmit}
         sx={{ display: "flex", flexDirection: "column", gap: 2 }}
       >
+        {/* Tekstiväli joogi nime jaoks */}
         <TextField
-          label="Name"
+          label="Name" // Väli pealkirjaga "Nimi"
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
+          onChange={(e) => setName(e.target.value)} // Muudab nime olekus
+          required // Väli on kohustuslik
         />
+        {/* Tekstiväli joogi kirjelduse jaoks */}
         <TextField
-          label="Description"
-          multiline
-          rows={4}
+          label="Description" // Väli pealkirjaga "Kirjeldus"
+          multiline // Lubab mitut rida teksti
+          rows={4} // 4 rida teksti
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => setDescription(e.target.value)} // Muudab kirjelduse olekus
         />
+        {/* Tekstiväli joogi hinna jaoks */}
         <TextField
-          label="Price" // Поле для цены
-          type="number"
+          label="Price" // Väli pealkirjaga "Hind"
+          type="number" // Numbriline sisend
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          required
-          inputProps={{ min: 0, step: 0.01 }} // Ограничения: минимум 0, шаг 0.01
+          onChange={(e) => setPrice(e.target.value)} // Muudab hinna olekus
+          required // Väli on kohustuslik
+          inputProps={{ min: 0, step: 0.01 }} // Minimaalne väärtus 0, sammuga 0.01
         />
+        {/* Nupu komponent pildi üleslaadimiseks */}
         <Button
           variant="outlined"
           component="label"
@@ -74,16 +83,19 @@ const CreateDrink = () => {
           }}
         >
           Upload File
+          {/* Faili sisestamise sisend */}
           <Input
             type="file"
-            onChange={(e) => setImage(e.target.files[0])}
-            required
-            sx={{ display: "none" }}
+            onChange={(e) => setImage(e.target.files[0])} // Määrab faili olekusse
+            required // Väli on kohustuslik
+            sx={{ display: "none" }} // Peidetud vaikimisi
           />
         </Button>
+        {/* Nupp vormi esitamiseks */}
         <Button variant="contained" type="submit">
           Create
         </Button>
+        {/* Tagasilink avalehele */}
         <Link
           href="/"
           underline="hover"
@@ -101,4 +113,5 @@ const CreateDrink = () => {
     </Container>
   );
 };
+
 export default CreateDrink;
