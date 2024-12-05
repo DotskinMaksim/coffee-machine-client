@@ -32,6 +32,9 @@ const Login = () => {
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId", response.data.userId);
       localStorage.setItem("isAdmin", response.data.isAdmin);
+      localStorage.setItem("bonusBalance", response.data.bonusBalance);
+
+
       navigate("/");
     } else {
       console.error("Received data is missing expected fields:", response.data);
