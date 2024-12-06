@@ -14,8 +14,15 @@ import {
   Grid,
   Container,
   CircularProgress,
-  Alert,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Slider,
+  Checkbox,
+  TextField,
+    FormControl,
 } from "@mui/material";
+
 const Modal = styled.div`
   position: fixed;
   top: 0;
@@ -64,8 +71,16 @@ const DrinksList = () => {
   const [intervalId, setIntervalId] = useState(null);  // Manage interval state
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [processingOrderId, setProcessingOrderId] = useState(null);
+    const [customizingDrink, setcustomizingDrink] = useState(false);
+  const [customizingDrinkId, setcustomizingDrinkId] = useState(null); // Valitud joogi ID
+const [selectedCupSize, setSelectedCupSize] = useState(2);
 
-    const navigate = useNavigate();
+    const [cupSizes, setCupSizes] = useState([]);
+  const [sugarLevel, setSugarLevel] = useState(2);
+  const [quantity, setQuantity] = useState(1);
+  const [useBonus, setUseBonus] = useState(false);
+  const [sugarMin, setSugarMin] = useState(0);
+  const [sugarMax, setSugarMax] = useState(0);
 
 
   useEffect(() => {
@@ -77,7 +92,27 @@ const DrinksList = () => {
     const token = localStorage.getItem("token"); // Kasutaja autentimise token
     const isLogged = !!token; // Kontrollime, kas kasutaja on sisse logitud
 
-    // Teeme GET-päringu, et saada kõik joogid vastavalt sisselogimise ja administraatori staatusele
+
+    axios
+      .get('https://localhost:7198/api/Drinks/GetSugarScale')
+      .then((response) => {
+        if (response.data) {
+          setSugarMin(response.data.min);
+          setSugarMax(response.data.max);
+        }
+      })
+      .catch((error) => {
+        console.error('Ошибка при загрузке данных: ', error);
+      });
+    axios
+
+      .get('https://localhost:7198/api/Drinks/GetCupSizes')
+      .then((response) => {
+        setCupSizes(response.data);
+      });
+
+
+
     axios
       .get(`https://localhost:7198/api/Drinks`, {
         params: {
@@ -88,9 +123,18 @@ const DrinksList = () => {
       .then((response) => setDrinks(response.data)) // Kui päring õnnestub, salvestame joogid
       .catch((error) => console.error("Error fetching drinks:", error)); // Kui päring ebaõnnestub, logime vea
   }, []);
-
+    const handleCustomizeDrink = (id) => {
+        setPaymentStatus(null);
+        setcustomizingDrinkId(id);
+        setcustomizingDrink(true);
+        setIsModalOpen(true);
+    };
   // Funktsioon joogi ettevalmistamiseks (näiteks kui kasutaja ei ole administraator)
   const handlePrepareDrink = async(id)  => {
+
+      setcustomizingDrink(false);
+      setcustomizingDrinkId(null);
+
      let paymentWindowInstance = null;
      let intervalInstance = null;
      let userId = localStorage.getItem("userId");
@@ -101,10 +145,11 @@ const DrinksList = () => {
       }
       const orderData = {
       userId: userId,
-      sugarLevel: 2,
-      quantity: 1,
-      cupSizeId: 1,
+      sugarLevel: sugarLevel,
+      quantity: quantity,
+      cupSizeId: selectedCupSize,
       drinkId: id,
+      useBalance: useBonus,
      };
       let isLoggedIn = false;
       const token = localStorage.getItem("token");
@@ -159,12 +204,15 @@ const DrinksList = () => {
 
               setIsProcessing(true); // Määrame töötlemisoleku True
               setSelectedDrinkId(id); // Määrame valitud joogi ID
+             await updateBonusBalance(localStorage.getItem('userId'));
 
               // Kui töötlemine on lõpetatud (5 sekundi pärast), näitame alerti
               setTimeout(() => {
                 setIsProcessing(false); // Määrame töötlemisoleku False
                 setSelectedDrinkId(null); // Tühjendame valitud joogi ID
-                alert("Your drink is ready. You can take it!"); // Näitame sõnumi
+                alert("Your drink is ready. You can take it!");
+                    window.location.reload();
+// Näitame sõnumi
               }, 5000);
             }
             else{
@@ -235,6 +283,24 @@ const DrinksList = () => {
         .catch((error) => console.error("Error deleting drink:", error)); // Kui päring ebaõnnestub, logime vea
     }
   };
+  const updateBonusBalance = async (userId) =>{
+       try {
+        const response = await fetch(`https://localhost:7198/api/users/balance/${userId}`);
+
+        if (!response.ok) {
+            throw new Error('User not found or error with request');
+        }
+        const data = await response.json();
+        localStorage.removeItem("bonusBalance");
+        localStorage.setItem('bonusBalance',  data.balance)
+
+    } catch (error) {
+        console.error('Error fetching balance:', error);
+    }
+    };
+  const handleCupSizeChange = (event) => {
+  setSelectedCupSize(event.target.value);
+};
 
   return (
     <Container>
@@ -304,7 +370,7 @@ const DrinksList = () => {
                   <Button
                     variant="contained"
                     disabled={isProcessing} // Kui töötlemine on käimas, nupp on keelatud
-                    onClick={() => handlePrepareDrink(drink.id)} // Kutsume ettevalmistamise funktsiooni
+                    onClick={() => handleCustomizeDrink(drink.id)} // Kutsume ettevalmistamise funktsiooni
                   >
                     {isProcessing && selectedDrinkId === drink.id ? (
                       // Kui joogi töötlemine on käimas, kuvame laadimisrattast
@@ -322,6 +388,75 @@ const DrinksList = () => {
       {isModalOpen && (
         <Modal>
           <ModalContent>
+          {customizingDrink && (
+              <>
+              <Typography variant="h6">Customize Your Drink</Typography>
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              Choose Cup Size:
+            </Typography>
+           <RadioGroup
+              value={selectedCupSize}  // Используйте selectedCupSize, чтобы отслеживать выбранный размер чашки
+              onChange={handleCupSizeChange}
+              row
+            >
+              <FormControl component="fieldset">
+                <RadioGroup aria-label="cup size" name="cup-size-group" value={selectedCupSize} onChange={handleCupSizeChange}>
+                  {cupSizes.map((cup) => (
+                    <FormControlLabel
+                      key={cup.id}
+                      value={cup.id}  // Используем cup.id как значение для Radio
+                      control={<Radio />}
+                      label={cup.name}
+                    />
+                  ))}
+                </RadioGroup>
+              </FormControl>
+
+            </RadioGroup>
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              Sugar Level:
+            </Typography>
+            <Slider
+              value={sugarLevel}
+              onChange={(e, value) => setSugarLevel(value)}
+              step={1}
+              min={sugarMin}
+              max={sugarMax}
+              marks
+              valueLabelDisplay="auto"
+            />
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              Quantity:
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</Button>
+              <TextField
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                inputProps={{ min: 1, type: "number" }}
+                sx={{ width: "60px", mx: 2 }}
+              />
+              <Button onClick={() => setQuantity(quantity + 1)}>+</Button>
+            </Box>
+           {localStorage.getItem("token") && (
+          <FormControlLabel
+            control={
+              <Checkbox checked={useBonus} onChange={(e) => setUseBonus(e.target.checked)} />
+            }
+            label={`Use Bonus Balance - €${localStorage.getItem("bonusBalance")}`}
+            sx={{ mt: 2 }}
+          />
+        )}
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
+              <Button variant="outlined" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="contained" onClick={() => handlePrepareDrink(customizingDrinkId)}>
+              Pay and Confirm
+            </Button>
+            </Box>
+              </>
+            )}
             {isPaymentProcessing ? (
               <>
                 <p>Processing payment...</p>
@@ -331,7 +466,7 @@ const DrinksList = () => {
               <>
             <p>Payment successful!</p>
               </>
-            ) : paymentStatus === 'failed' && (
+            ) : paymentStatus === 'failed' &&  !customizingDrink &&(
               <p>Payment canceled.</p>
             )}
           </ModalContent>
